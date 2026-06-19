@@ -1,85 +1,225 @@
-import { useState } from 'react';
-import { Radio, Binary, Sliders } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function App() {
-    const [engineActive, setEngineActive] = useState(false);
+    const canvasRef = useRef(null);
+    const [iteration, setIteration] = useState(0);
+    const [allocBytes, setAllocBytes] = useState('0.00 bytes');
+
+    // 1. Simulación de Telemetría Dinámica (Fluctuación de memoria y ciclos)
+    useEffect(() => {
+        const metricsInterval = setInterval(() => {
+            // Incrementa los ciclos/ticks del sistema linealmente
+            setIteration((prev) => prev + 1);
+
+            // Simula asignaciones de memoria contigua fluctuando entre 12.4 KB y 16.8 KB
+            const baseMemory = 12.4 * 1024;
+            const jitter = Math.sin(Date.now() / 200) * 4.2 * 1024;
+            const totalBytes = baseMemory + jitter;
+
+            if (totalBytes > 1024) {
+                setAllocBytes(`${(totalBytes / 1024).toFixed(2)} KB`);
+            } else {
+                setAllocBytes(`${totalBytes.toFixed(0)} bytes`);
+            }
+        }, 16.67); // Sincronizado a ~60 ejecuciones por segundo
+
+        return () => clearInterval(metricsInterval);
+    }, []);
+
+    // 2. Motor Gráfico en Canvas: Renderizado de Piscinas de Entidades ECS
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+
+        // Configurar tamaño fijo del canvas basado en su contenedor
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        // Inicializar 150 entidades distribuidas en memoria secuencial
+        const entities = [];
+        for (let i = 0; i < 150; i++) {
+            entities.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                speedX: (Math.random() - 0.5) * 1.5,
+                speedY: (Math.random() - 0.5) * 1.5,
+                size: Math.random() * 1.5 + 0.5,
+                pulseOffset: Math.random() * Math.PI
+            });
+        }
+
+        // Bucle principal de renderizado nativo a 60 FPS
+        const render = () => {
+            // Limpieza con rastro sutil de barrido (efecto radar/fósforo)
+            ctx.fillStyle = 'rgba(3, 3, 3, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar líneas de cuadrícula de telemetría muy tenues
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.02)';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Procesamiento secuencial de bloques de entidades
+            entities.forEach((entity, idx) => {
+                // Actualizar posiciones lineales
+                entity.x += entity.speedX;
+                entity.y += entity.speedY;
+
+                // Rebotar en los límites del búfer del monitor
+                if (entity.x < 0 || entity.x > canvas.width) entity.speedX *= -1;
+                if (entity.y < 0 || entity.y > canvas.height) entity.speedY *= -1;
+
+                // Renderizar nodo cian
+                const alpha = 0.2 + Math.abs(Math.sin((Date.now() / 400) + entity.pulseOffset)) * 0.6;
+                ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(entity.x, entity.y, entity.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Conectar nodos cercanos secuencialmente para simular mapeo de proximidad contiguo
+                if (idx > 0 && idx % 12 === 0) {
+                    ctx.strokeStyle = 'rgba(129, 140, 248, 0.08)';
+                    ctx.beginPath();
+                    ctx.moveTo(entity.x, entity.y);
+                    ctx.lineTo(entities[idx - 1].x, entities[idx - 1].y);
+                    ctx.stroke();
+                }
+            });
+
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        render();
+
+        // Reajustar dimensiones si cambia el tamaño de la ventana
+        const handleResize = () => {
+            if (!canvas) return;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     return (
-        <div className="min-h-screen bg-[#030303] text-zinc-100 antialiased relative overflow-hidden p-6 md:p-12">
-            <div className="absolute inset-0 grid-mesh opacity-40 pointer-events-none z-0" />
-            <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-cyan-600/10 rounded-full blur-[160px] pointer-events-none" />
+        <div className="min-h-screen bg-[#030303] text-zinc-100 p-4 md:p-12 font-sans selection:bg-cyan-500/20 flex flex-col justify-between relative overflow-hidden">
 
-            <div className="w-full max-w-7xl mx-auto border-b border-zinc-900 bg-zinc-950/60 backdrop-blur-md px-6 py-3 flex justify-between items-center text-[11px] font-mono tracking-widest text-zinc-500 rounded-t-xl relative z-10">
-                <div className="flex items-center gap-4">
-                    <span>CORE://MONTEZA_MILIAN.ENGINE</span>
-                    <span className="text-zinc-800">|</span>
-                    <span className="flex items-center gap-1 text-cyan-500"><Radio size={12} className="animate-pulse" /> WASM_NODE: READY</span>
-                </div>
-                <div className="hidden md:block">SYS_STATUS: 0x00FF00</div>
-            </div>
+            {/* Malla técnica de fondo */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-40"
+                style={{
+                    backgroundImage: 'linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px)',
+                    backgroundSize: '32px 32px',
+                    maskImage: 'radial-gradient(ellipse 60% 50% at 50% 40%, #000 60%, transparent 100%)',
+                    WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 40%, #000 60%, transparent 100%)'
+                }}
+            />
 
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 relative z-10">
-                <section className="lg:col-span-4 border border-zinc-900 bg-zinc-950/40 backdrop-blur-xl rounded-2xl p-8 flex flex-col justify-between">
+            {/* TOP_BAR: Estado Global del Sistema */}
+            <header className="mono text-[10px] tracking-[0.2em] text-zinc-500 flex justify-between border-b border-zinc-900 pb-4 relative z-10">
+                <div>CORE://MONTEZA_MILIAN. MOTOR &nbsp;|&nbsp; <span className="text-emerald-400">● WASM_NODE: LISTO</span></div>
+                <div className="hidden sm:block">SYS_STATUS: <span className="text-indigo-400">0x0BFF8B</span></div>
+            </header>
+
+            {/* REJILLA BENTO PRINCIPAL */}
+            <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 my-auto relative z-10 py-8 items-stretch">
+
+                {/* COLUMNA IZQUIERDA: Identidad e Info Técnica */}
+                <div className="lg:col-span-4 flex flex-col justify-between py-2">
                     <div>
-                        <span className="text-[10px] font-mono tracking-[0.3em] text-indigo-400 uppercase block mb-2">Systems Architect</span>
-                        <h1 className="text-4xl font-light tracking-tight text-white leading-none mb-6">
+                        <span className="mono text-xs uppercase tracking-[0.3em] text-indigo-400 font-medium block mb-2">Arquitecto de Sistemas</span>
+                        <h1 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-6">
                             José Luis <br />
-                            <span className="font-semibold bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">Monteza Milian</span>
+                            <span className="bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent font-medium">Monteza Milian</span>
                         </h1>
-                        <p className="text-zinc-400 text-xs font-mono leading-relaxed border-l-2 border-zinc-800 pl-4">
-                            C# High-Performance Computing Core enfocado en el mapeo de memoria contigua y optimización de cach&eacute;.
+                        <p className="text-zinc-400 font-light text-sm md:text-base leading-relaxed max-w-sm mb-8">
+                            C# High-Performance Computing Core enfocado en el mapeo de memoria contigua y optimización de caché.
                         </p>
                     </div>
 
-                    <div className="mt-12 space-y-3 font-mono text-[11px] text-zinc-400">
-                        <div className="flex justify-between border-b border-zinc-900 pb-2">
-                            <span>Stack:</span> <span className="text-white">C# / .NET 10</span>
+                    <div className="border-t border-zinc-900 pt-6 space-y-4 mono text-[11px] uppercase tracking-wider">
+                        <div className="flex justify-between items-center">
+                            <span className="text-zinc-600">Stack:</span>
+                            <span className="text-zinc-300 font-medium">C# / .NET 10</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Memory Engine:</span> <span className="text-cyan-400">Zero-Allocation</span>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="lg:col-span-8 bg-zinc-950/20 backdrop-blur-xl border border-zinc-900 rounded-2xl p-6 flex flex-col justify-between">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
-                            <h3 className="text-xs font-mono tracking-wider text-zinc-300">ECS CORE MONITOR</h3>
+                        <div className="flex justify-between items-center">
+                            <span className="text-zinc-600">Motor de memoria:</span>
+                            <span className="text-cyan-400 font-medium">Asignación cero</span>
                         </div>
                     </div>
+                </div>
 
-                    <div className="bg-black/90 rounded-xl border border-zinc-900 aspect-video relative flex flex-col items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[size:100%_4px] pointer-events-none" />
+                {/* COLUMNA DERECHA: El Monitor ECS Vivo */}
+                <div className="lg:col-span-8 bg-zinc-950/40 backdrop-blur-xl border border-zinc-900 rounded-2xl p-6 flex flex-col justify-between min-h-[420px] md:min-h-[480px]">
 
-                        {!engineActive ? (
-                            <button
-                                onClick={() => setEngineActive(true)}
-                                className="bg-white text-zinc-950 hover:bg-cyan-400 px-6 py-3 rounded-xl text-xs font-mono font-bold uppercase tracking-widest transition-all shadow-xl active:scale-95 z-10"
-                            >
-                                Initialize Core Benchmark
-                            </button>
-                        ) : (
-                            <div className="w-full h-full p-6 font-mono text-[11px] text-cyan-400 flex flex-col justify-between z-10">
-                                <div className="flex justify-between border-b border-zinc-900 pb-2">
-                                    <span className="flex items-center gap-1"><Sliders size={12} /> ITERATION: ACTIVE</span>
-                                    <span className="text-zinc-400 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-900/50">ALLOC: 0.00 Bytes</span>
-                                </div>
-                                <div className="text-center my-auto space-y-1">
-                                    <Binary size={24} className="mx-auto text-cyan-500/30 mb-2" />
-                                    <div className="text-white font-bold text-sm tracking-widest">[ CORE RUNNING AT 60 HZ ]</div>
-                                    <div className="text-zinc-500 text-[10px]">Processing 300 Dense-Sparse Pools Sequentially</div>
-                                </div>
-                                <div className="grid grid-cols-2 text-[10px] text-zinc-500">
-                                    <div>CPU_CACHE: OPTIMIZED</div>
-                                    <div className="text-right text-indigo-400">RENDER: NATIVE_CANVAS</div>
-                                </div>
+                    {/* Cabecera del Panel */}
+                    <div className="flex justify-between items-center border-b border-zinc-900 pb-4 mb-4">
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                            <h2 className="mono text-xs uppercase tracking-widest text-zinc-300 font-bold">Monitor de Núcleo ECS</h2>
+                        </div>
+                        <div className="mono text-[11px] text-right">
+                            <span className="text-zinc-600 block sm:inline">ALLOC: </span>
+                            <span className="text-emerald-400 font-mono font-medium">{allocBytes}</span>
+                        </div>
+                    </div>
+
+                    {/* 🖥️ PANTALLA CENTRAL: CANVAS INTERACTIVO DE PARTÍCULAS */}
+                    <div className="flex-1 bg-[#030303] border border-zinc-900 rounded-xl relative overflow-hidden group min-h-[260px] flex items-center justify-center">
+
+                        {/* El Lienzo de Dibujo */}
+                        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+
+                        {/* Efecto Scanline clásico de monitor */}
+                        <div
+                            className="absolute inset-0 pointer-events-none opacity-30"
+                            style={{
+                                background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+                                backgroundSize: '100% 4px, 6px 100%'
+                            }}
+                        />
+
+                        {/* Texto Flotante de Estado en el Centro */}
+                        <div className="relative z-10 text-center pointer-events-none bg-black/50 backdrop-blur-sm p-4 rounded-xl border border-zinc-900/60 max-w-[85%]">
+                            <div className="mono text-[10px] tracking-[0.2em] text-cyan-500 font-medium mb-1.5 animate-pulse">
+                                ⚙️ ITERACIÓN: #{iteration}
                             </div>
-                        )}
+                            <h3 className="mono text-xs uppercase tracking-[0.15em] text-white font-medium mb-1">
+                                [ NÚCLEO FUNCIONANDO A 60 HZ ]
+                            </h3>
+                            <p className="text-[11px] text-zinc-500 font-light max-w-xs mx-auto">
+                                Procesamiento secuencial de 300 piscinas denso-dispersas.
+                            </p>
+                        </div>
                     </div>
-                </section>
-            </div>
+
+                    {/* Pie del Panel */}
+                    <div className="flex justify-between items-center border-t border-zinc-900 pt-4 mt-4 mono text-[10px] text-zinc-600 tracking-wider">
+                        <div>CPU_CACHE: <span className="text-zinc-400">OPTIMIZADO</span></div>
+                        <div>RENDER: <span className="text-indigo-400">NATIVE_CANVAS</span></div>
+                    </div>
+
+                </div>
+
+            </main>
+
+            {/* FOOTER METADATA */}
+            <footer className="mono text-[9px] text-zinc-700 text-center border-t border-zinc-950 pt-4 relative z-10">
+                MONITOR_NODE_LATENCY: 0.04ms // ALL RIGHTS RESERVED © {new Date().getFullYear()}
+            </footer>
+
         </div>
     );
 }
