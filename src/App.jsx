@@ -129,7 +129,7 @@ export default function App() {
 
             {/* TOP_BAR: Estado Global del Sistema */}
             <header className="mono text-[10px] tracking-[0.2em] text-zinc-500 flex justify-between border-b border-zinc-900 pb-4 relative z-10">
-                <div>CORE://MONTEZA_MILIAN. MOTOR &nbsp;|&nbsp; <span className="text-emerald-400">● WASM_NODE: LISTO</span></div>
+                <div>CORE://MONTEZA_MILIAN. MOTOR &nbsp;|&nbsp; <span className="text-emerald-400">● SIM_NODE: ACTIVO</span></div>
                 <div className="hidden sm:block">SYS_STATUS: <span className="text-indigo-400">0x0BFF8B</span></div>
             </header>
 
@@ -139,24 +139,24 @@ export default function App() {
                 {/* COLUMNA IZQUIERDA: Identidad e Info Técnica */}
                 <div className="lg:col-span-4 flex flex-col justify-between py-2">
                     <div>
-                        <span className="mono text-xs uppercase tracking-[0.3em] text-indigo-400 font-medium block mb-2">Arquitecto de Sistemas</span>
+                        <span className="mono text-xs uppercase tracking-[0.3em] text-indigo-400 font-medium block mb-2">Full-Stack Developer</span>
                         <h1 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-6">
                             José Luis <br />
                             <span className="bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent font-medium">Monteza Milian</span>
                         </h1>
                         <p className="text-zinc-400 font-light text-sm md:text-base leading-relaxed max-w-sm mb-8">
-                            C# High-Performance Computing Core enfocado en el mapeo de memoria contigua y optimización de caché.
+                            Monitor visual de un núcleo ECS simulado: telemetría en tiempo real y renderizado nativo en canvas a 60 FPS.
                         </p>
                     </div>
 
                     <div className="border-t border-zinc-900 pt-6 space-y-4 mono text-[11px] uppercase tracking-wider">
                         <div className="flex justify-between items-center">
                             <span className="text-zinc-600">Stack:</span>
-                            <span className="text-zinc-300 font-medium">C# / .NET 10</span>
+                            <span className="text-zinc-300 font-medium">React 19 + Canvas API</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-zinc-600">Motor de memoria:</span>
-                            <span className="text-cyan-400 font-medium">Asignación cero</span>
+                            <span className="text-zinc-600">Telemetría:</span>
+                            <span className="text-cyan-400 font-medium">Simulada · 60 Hz</span>
                         </div>
                     </div>
                 </div>
@@ -200,14 +200,14 @@ export default function App() {
                                 [ NÚCLEO FUNCIONANDO A 60 HZ ]
                             </h3>
                             <p className="text-[11px] text-zinc-500 font-light max-w-xs mx-auto">
-                                Procesamiento secuencial de 300 piscinas denso-dispersas.
+                                Renderizado de 150 entidades con enlaces de proximidad.
                             </p>
                         </div>
                     </div>
 
                     {/* Pie del Panel */}
                     <div className="flex justify-between items-center border-t border-zinc-900 pt-4 mt-4 mono text-[10px] text-zinc-600 tracking-wider">
-                        <div>CPU_CACHE: <span className="text-zinc-400">OPTIMIZADO</span></div>
+                        <div>FRAME_TIME: <span className="text-zinc-400">~16.6 MS</span></div>
                         <div>RENDER: <span className="text-indigo-400">NATIVE_CANVAS</span></div>
                     </div>
 
@@ -217,7 +217,7 @@ export default function App() {
 
             {/* FOOTER METADATA */}
             <footer className="mono text-[9px] text-zinc-700 text-center border-t border-zinc-950 pt-4 relative z-10">
-                MONITOR_NODE_LATENCY: 0.04ms // ALL RIGHTS RESERVED © {new Date().getFullYear()}
+                REACT 19 · VITE · TAILWIND 4 · CANVAS // ALL RIGHTS RESERVED © {new Date().getFullYear()}
             </footer>
 
         </div>

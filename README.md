@@ -1,16 +1,30 @@
-# React + Vite
+# ECS Dashboard — Real-Time Simulation Monitor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live demo:** https://joseluismontezamilian12-rgb.github.io/ecs-dashboard/
 
-Currently, two official plugins are available:
+Retro-terminal React SPA that monitors a **simulated** Entity-Component-System (ECS) core in real time: a telemetry loop ticking at ~60 Hz, fluctuating memory-allocation readouts, and a native `<canvas>` scene rendering 150 entities with proximity links — CRT scanlines included.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> **What this is (and isn't):** the "core" is a JavaScript simulation running entirely in the browser (`setInterval` at ~16.7 ms for telemetry + `requestAnimationFrame` for rendering). There is no WebAssembly and no backend. The point of the project is real-time front-end work: canvas rendering, animation loops, and keeping React state updates smooth at 60 FPS.
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 · Vite · Tailwind CSS 4 · HTML5 Canvas · GitHub Pages (`gh-pages`)
 
-## Expanding the ESLint configuration
+## How it works
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Telemetry loop** — a 16.67 ms `setInterval` increments the iteration counter and simulates memory-allocation jitter (12.4–16.8 KB) with a sine wave.
+- **Canvas engine** — a `requestAnimationFrame` loop draws a telemetry grid, 150 pulsing entities bouncing inside the viewport, and sequential proximity links, with a phosphor-trail clear effect for the radar look.
+- **Responsive** — the canvas re-measures on window resize; the scanline overlay is pure CSS gradients.
+
+## Run locally
+
+```bash
+npm install
+npm run dev       # local dev server
+npm run build     # production build
+npm run deploy    # build + publish to GitHub Pages
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
