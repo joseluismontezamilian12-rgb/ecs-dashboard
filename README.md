@@ -25,6 +25,15 @@ npm run build     # production build
 npm run deploy    # build + publish to GitHub Pages
 ```
 
+---
+
+## Author
+
+**José Luis Monteza Milian** — Backend / Full-Stack Developer (.NET · React · TypeScript), Lima, Peru.  
+[Portfolio](https://joseluismontezamilian12-rgb.github.io/portafolio-frontend/) · [LinkedIn](https://www.linkedin.com/in/joseluismonteza) · [GitHub](https://github.com/joseluismontezamilian12-rgb)
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
